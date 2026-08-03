@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+
+kurigram
+tgcrypto
+
+playwright
+
+beautifulsoup4
+lxml
+
+python-dotenv
+orjson
+httpx
