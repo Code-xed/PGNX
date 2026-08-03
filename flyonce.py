@@ -1,6 +1,7 @@
 import asyncio
 from playwright.async_api import async_playwright
 
+
 URL = "https://gamefactory.zone/chess/app#cses=nhfJ44RzW9J6iON3XnVBaw&uid=5776831017%40telegram&ctype=chess&uname=Uraraka+Deku+san&domain=telegram&sign=IO7f6HC0ED1wWtnwab3lfrvXraI3zKhVKzkgugfqeOcKz5qFhJsoGCm%2BywrkdiIOcugsXkg84VYKondnhcG2hfbJ2hW2d12lWA%2BHs%2FFY1Cy0rt4SHATFjImriaOTNCfwu7lb8pSNXGsGexebyZhAGEGitpowvIuftWUtp%2FZKNRA%3D&subj=BQAAAPLn1iD_____MC8DAEsSctc-QTn8&logout=false"
 
 
@@ -11,6 +12,9 @@ async def main():
             args=[
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--no-zygote",
+                "--single-process",
             ],
         )
 
@@ -27,13 +31,15 @@ async def main():
 
                 ct = resp.headers.get("content-type", "")
 
-                if any(x in ct for x in (
-                    "json",
-                    "javascript",
-                    "text",
-                    "xml",
-                    "html",
-                )):
+                if any(
+                    x in ct
+                    for x in (
+                        "json",
+                        "javascript",
+                        "text",
+                        "xml",
+                    )
+                ):
                     body = await resp.text()
                     print(body[:5000])
 
@@ -53,12 +59,12 @@ async def main():
 
             ws.on(
                 "framesent",
-                lambda f: print(f"\n>> SENT\n{f.payload}")
+                lambda data: print(f"\n>> SENT\n{data}")
             )
 
             ws.on(
                 "framereceived",
-                lambda f: print(f"\n<< RECEIVED\n{f.payload}")
+                lambda data: print(f"\n<< RECEIVED\n{data}")
             )
 
             ws.on(
@@ -68,21 +74,16 @@ async def main():
 
         page.on("websocket", on_websocket)
 
-        print("Opening URL...")
-        await page.goto(URL, wait_until="domcontentloaded")
+        print("Opening...")
+        await page.goto(URL)
 
         print("Title:", await page.title())
-        print("Current URL:", page.url)
+        print("URL:", page.url)
 
-        # Wait for JS/WebSocket activity
+        # Give the websocket time to exchange messages
         await page.wait_for_timeout(60000)
 
-        html = await page.content()
-
-        with open("rendered.html", "w", encoding="utf-8") as f:
-            f.write(html)
-
-        print("Saved rendered.html")
+        print("Finished sniffing.")
 
         await browser.close()
 
