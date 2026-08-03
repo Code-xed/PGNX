@@ -37,4 +37,4 @@ RUN playwright install chromium
 
 COPY . .
 
-CMD ["python", "app.py"]
+CMD ["python", "flyonce.py"]
