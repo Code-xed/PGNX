@@ -16,13 +16,10 @@ app = Client(
 
 @app.on_message(filters.command("pgn"))
 async def pgn_handler(client, message):
-    url = await get_gamefactory_url(message)
+    from flyonce import sniff
 
-    if not url:
-        await message.reply("Reply to a GameFactory chess message.")
-        return
+    await sniff()
 
-    await message.reply(url)
-
+    await message.reply("Done. Check Fly logs.")
 
 app.run()
