@@ -1,8 +1,10 @@
 import asyncio
 from playwright.async_api import async_playwright
 
+URL = "https://gamefactory.zone/chess/app#cses=nhfJ44RzW9J6iON3XnVBaw&uid=5776831017%40telegram&ctype=chess&uname=Uraraka+Deku+san&domain=telegram&sign=IO7f6HC0ED1wWtnwab3lfrvXraI3zKhVKzkgugfqeOcKz5qFhJsoGCm%2BywrkdiIOcugsXkg84VYKondnhcG2hfbJ2hW2d12lWA%2BHs%2FFY1Cy0rt4SHATFjImriaOTNCfwu7lb8pSNXGsGexebyZhAGEGitpowvIuftWUtp%2FZKNRA%3D&subj=BQAAAPLn1iD_____MC8DAEsSctc-QTn8&logout=false"
 
-async def sniff(url: str):
+
+async def main():
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
@@ -25,15 +27,13 @@ async def sniff(url: str):
 
                 ct = resp.headers.get("content-type", "")
 
-                if any(
-                    x in ct
-                    for x in (
-                        "json",
-                        "javascript",
-                        "text",
-                        "xml",
-                    )
-                ):
+                if any(x in ct for x in (
+                    "json",
+                    "javascript",
+                    "text",
+                    "xml",
+                    "html",
+                )):
                     body = await resp.text()
                     print(body[:5000])
 
@@ -47,7 +47,8 @@ async def sniff(url: str):
 
         def on_websocket(ws):
             print("\n==============================")
-            print("WEBSOCKET:", ws.url)
+            print("WEBSOCKET")
+            print(ws.url)
             print("==============================")
 
             ws.on(
@@ -67,15 +68,14 @@ async def sniff(url: str):
 
         page.on("websocket", on_websocket)
 
-        print("Opening:", url)
-
-        await page.goto(
-            url,
-            wait_until="networkidle",
-        )
+        print("Opening URL...")
+        await page.goto(URL, wait_until="domcontentloaded")
 
         print("Title:", await page.title())
         print("Current URL:", page.url)
+
+        # Wait for JS/WebSocket activity
+        await page.wait_for_timeout(60000)
 
         html = await page.content()
 
@@ -84,7 +84,8 @@ async def sniff(url: str):
 
         print("Saved rendered.html")
 
-        # Give sockets time to receive data
-        await page.wait_for_timeout(60000)
-
         await browser.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
